@@ -8,7 +8,7 @@ import org.junit.Test;
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/14 12:29 下午
- * @desc ：生产消息
+ * @desc ：生产者和Hello World的形式是一样的，都是将消息推送到默认交换机。
  */
 public class Publisher {
 
