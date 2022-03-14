@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/14 12:29 下午
- * @desc ：
+ * @desc ：生产消息
  */
 public class Publisher {
 
