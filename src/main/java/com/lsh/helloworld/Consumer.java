@@ -18,7 +18,7 @@ public class Consumer {
      * 发送消息
      */
     @Test
-    public void publisher() throws Exception {
+    public void consumer() throws Exception {
         // 1.获取连接对象
         Connection connection = RabbitMQConnectionUtil.getConnection();
 
