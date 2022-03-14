@@ -1,5 +1,6 @@
-package com.lsh;
+package com.lsh.helloworld;
 
+import com.lsh.RabbitMQConnectionUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import org.junit.Test;
