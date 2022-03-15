@@ -17,7 +17,7 @@ import java.io.IOException;
  *  2.设置消息的流控
  * 最终实现消费者可以尽可能去多消费消息
  */
-public class twoConsumer {
+public class TwoConsumer {
     public static final String QUEUE_NAME = "work";
 
     @Test

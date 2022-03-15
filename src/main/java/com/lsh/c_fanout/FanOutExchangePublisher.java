@@ -1,4 +1,4 @@
-package com.lsh.c_pubsub;
+package com.lsh.c_fanout;
 
 import com.lsh.RabbitMQConnectionUtil;
 import com.rabbitmq.client.BuiltinExchangeType;

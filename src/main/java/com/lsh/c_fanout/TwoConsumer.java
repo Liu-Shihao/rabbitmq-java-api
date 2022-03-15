@@ -1,4 +1,4 @@
-package com.lsh.c_pubsub;
+package com.lsh.c_fanout;
 
 import com.lsh.RabbitMQConnectionUtil;
 import com.rabbitmq.client.*;
@@ -9,13 +9,7 @@ import java.io.IOException;
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/14 2:07 下午
- * @desc ：设置两个消费者进行监听
- * 本来正常两个消费者是通过轮询方式进行消息的消费的
- * 如果1号消费者消费需要100毫秒 ； 2号消费者消费需要1000毫秒，这样会影响消息消费的效率
- * 如果需要让消费者尽可能的消费多的消息，则需要：
- *  1.消费者关闭自动ack，开启手动ack确认，
- *  2.设置消息的流控
- * 最终实现消费者可以尽可能去多消费消息
+ * @desc ：
  */
 public class TwoConsumer {
     //队列1
