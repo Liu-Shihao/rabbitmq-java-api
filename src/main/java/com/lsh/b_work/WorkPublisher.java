@@ -1,4 +1,4 @@
-package com.lsh.work;
+package com.lsh.b_work;
 
 import com.lsh.RabbitMQConnectionUtil;
 import com.rabbitmq.client.Channel;
@@ -10,7 +10,7 @@ import org.junit.Test;
  * @date ：Created in 2022/3/14 12:29 下午
  * @desc ：生产者和Hello World的形式是一样的，都是将消息推送到默认交换机。
  */
-public class Publisher {
+public class WorkPublisher {
 
     public static final String QUEUE_NAME = "work";
 
