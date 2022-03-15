@@ -12,7 +12,8 @@ import java.util.UUID;
  * @date ：Created in 2022/3/15 4:14 下午
  * @desc ：RabbitMQ RPC模式  Client端代码 RabbitMQ这种RPC模式一般使用的不多
  * 因为两个服务在交互时，可以尽量做到Client和Server的解耦，通过RabbitMQ进行解耦操作 需要让Client发送消息时，携带两个属性:
- * replyTo告知Server将相应信息放到哪个队列 correlationId告知Server发送相应消息时，需要携带位置标示来告知Client响应的信息
+ * replyTo告知Server将相应信息放到哪个队列
+ * correlationId告知Server发送相应消息时，需要携带位置标示来告知Client响应的信息
  *
  *
  * client：向 rpc_publisher 队列发送请求消息，并监听 rpc_consumer 响应队列的消息
