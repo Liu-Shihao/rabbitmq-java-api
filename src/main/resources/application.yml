@@ -5,3 +5,7 @@ spring:
     username: admin
     password: admin
     virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual  # 设置手动ack确认
+        prefetch: 10  # 设置消息流控
