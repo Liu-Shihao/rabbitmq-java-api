@@ -5,8 +5,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,5 +50,41 @@ public class SendMQTest {
             }
         });
         System.out.println("消息已发送");
+    }
+
+    /**
+     * 通过rabbitTemplate.setConfirmCallback()开启confirms机制
+     */
+    @Test
+    public void sendWithConfirms(){
+        rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
+            @Override
+            public void confirm(CorrelationData correlationData, boolean ack, String cause) {
+                if (ack){
+                    System.out.println("消息已送达交换机！");
+                }else {
+                    System.out.println("消息未到达交换机！");
+                }
+            }
+        });
+        //注意：低版本使用setReturnCallback（）方法；在高版本中该方法被弃用，使用setReturnsCallback()方法
+        rabbitTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
+            @Override
+            public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey)  {
+                String msg = new String(message.getBody());
+                System.out.println("消息未成功投递到队列："+msg);
+            }
+        });
+        //注意 ：只用SpringBoot项目投递消息时，不需要在设置mandatory参数为true
+        //发送消息 设置消息持久化 message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+        rabbitTemplate.convertAndSend("", "confirmss", "SpringBoot Confirms Message!", new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                // MessageDeliveryMode枚举类：
+                // NON_PERSISTENT 表示不持久化 ；PERSISTENT表示持久化
+                message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                return message;
+            }
+        });
     }
 }

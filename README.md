@@ -388,5 +388,8 @@ public class ConfirmsConsumer {
     }
 }
 ```
-
+## 4.5 SpringBoot项目实现消息可靠性
+1. 在application.yml配置文件中通过配置spring.rabbitmq.publisher-confirm-type为correlated开启confirms机制
+2. 在rabbitTemplate.setConfirmCallback()设置confirms机制的回调函数
+2. 
 # 五、集群高可用
