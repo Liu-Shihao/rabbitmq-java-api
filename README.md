@@ -391,5 +391,44 @@ public class ConfirmsConsumer {
 ## 4.5 SpringBoot项目实现消息可靠性
 1. 在application.yml配置文件中通过配置spring.rabbitmq.publisher-confirm-type为correlated开启confirms机制
 2. 在rabbitTemplate.setConfirmCallback()设置confirms机制的回调函数
-2. 
+3. application.yml配置spring.rabbitmq.publisher-returns为true开启Return机制。
+4. 通过rabbitTemplate.setReturnCallback（）方法这是Return机制的回调函数。
+5. 设置消息持久化
+```java
+/**
+ * 通过rabbitTemplate.setConfirmCallback()开启confirms机制
+ */
+@Test
+public void sendWithConfirms(){
+    rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
+        @Override
+        public void confirm(CorrelationData correlationData, boolean ack, String cause) {
+            if (ack){
+                System.out.println("消息已送达交换机！");
+            }else {
+                System.out.println("消息未到达交换机！");
+            }
+        }
+    });
+    //注意：低版本使用setReturnCallback（）方法；在高版本中该方法被弃用，使用setReturnsCallback()方法
+    rabbitTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
+        @Override
+        public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey)  {
+            String msg = new String(message.getBody());
+            System.out.println("消息未成功投递到队列："+msg);
+        }
+    });
+    //注意 ：只用SpringBoot项目投递消息时，不需要在设置mandatory参数为true
+    //发送消息 设置消息持久化 message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+    rabbitTemplate.convertAndSend("", "confirmss", "SpringBoot Confirms Message!", new MessagePostProcessor() {
+        @Override
+        public Message postProcessMessage(Message message) throws AmqpException {
+            // MessageDeliveryMode枚举类：
+            // NON_PERSISTENT 表示不持久化 ；PERSISTENT表示持久化
+            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+            return message;
+        }
+    });
+}
+```
 # 五、集群高可用
