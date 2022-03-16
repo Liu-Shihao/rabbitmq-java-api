@@ -38,7 +38,7 @@ public class DeadLetterConfig {
     }
 
     /**
-     * 在普通队列设置死信交换机和死信路由
+     * 在普通队列时需要设置死信交换机和死信路由
      * deadLetterExchange   设置死信交换机
      * deadLetterRoutingKey 设置死信路由
      * 设置普通队列的ttl，如果队列中消息过期则会进入死信队列
@@ -50,8 +50,8 @@ public class DeadLetterConfig {
         return QueueBuilder.durable(NORMAL_QUEUE)
                 .deadLetterExchange(DEAD_EXCHANGE)
                 .deadLetterRoutingKey("dead.abd")
-                .ttl(5000)
-                .maxLength(1)
+                .ttl(5000) // 设置队列的ttl 单位为毫秒
+//                .maxLength(1) //设置队列最大长度
                 .build();
     }
 

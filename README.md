@@ -438,7 +438,71 @@ public class ConfirmsConsumer {
     }
 ```
 # 五、死信队列&延时交换机
-## 5.1 死信
-当消息被消费者拒绝，并且requeue设置为false（消息不重新投递回队列）
+## 5.1 死信队列
+成为死信有三种方式：
+1. 消息被拒绝并且禁止重新被投放回队列
+2. 消息过期（设置消息的TTL或者设置队列的TTL ，两种方式都能使消息过期）
+3. 队列内消息超过最大队列长度
+
+### 5.1.1 拒绝消息
+```java
+//1.监听普通队列消息，拒绝或者不ack消息，并且requeue为false禁止重新投递队列，则消息会进入死信队列
+@RabbitListener(queues = DeadLetterConfig.NORMAL_QUEUE)
+public void consumer1(String msg, Channel channel, Message message) throws IOException {
+    System.out.println("监听到普通队列消息："+msg);
+    //拒绝消息或者不ack确认消息
+    //设置拒绝消息，并禁止重新投递队列requeue=false
+    // channel.basicReject(message.getMessageProperties().getDeliveryTag(),false);
+    // requeue如果为true则重新排队，如果为false则被丢弃或者进入死信队列
+    channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,false);
+}
+```
+### 5.1.2 消息过期
+设置TTL（TimeToLive）有两种方式：
+1. 直接设置消息的过期时间
+2. 通过设置队列的过期时间
+注意：通过消息过期的方式使消息进入死信队列，消费者不能监听普通队列，需要监听死信队列。
+```java
+//1.设置消息的TTL
+@Test
+public void sendDeadLetterQueueAndSetTTL(){
+    rabbitTemplate.convertAndSend(DeadLetterConfig.NORMAL_EXCHANGE, "normal.ttl", "通过设置TTL消息存活时间，使消息进入死信队列", new MessagePostProcessor() {
+        @Override
+        public Message postProcessMessage(Message message) throws AmqpException {
+            //设置消息存活时间 String 类型 单位为毫秒
+            message.getMessageProperties().setExpiration("5000");
+            return message;
+        }
+    });
+    System.out.println("消息已发送");
+}
+
+//2.设置队列的TTL
+    @Bean
+    public Queue normalQueue(){
+        return QueueBuilder.durable(NORMAL_QUEUE)
+                .deadLetterExchange(DEAD_EXCHANGE)
+                .deadLetterRoutingKey("dead.abd")
+                .ttl(5000)//设置队列的TTL 单位为毫秒
+                .maxLength(1)
+                .build();
+    }
+```
+### 5.1.3 队列最大长度
+在声明队列的时候设置队列的最大长度，则超过这个最大长度后的消息都会被进入死信队列或者被丢弃
+```java
+    @Bean
+    public Queue normalQueue(){
+        return QueueBuilder.durable(NORMAL_QUEUE)
+                .deadLetterExchange(DEAD_EXCHANGE)
+                .deadLetterRoutingKey("dead.abd")
+                .ttl(5000)
+                .maxLength(1) //设置队列最大长度
+                .build();
+    }
+```
+
+## 5.2 延时交换机（RabbitMQ Plugins）
+
 
 # 、集群高可用
