@@ -57,6 +57,8 @@ public class SendMQTest {
      */
     @Test
     public void sendWithConfirms(){
+
+        //1.设置Confirms机制
         rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
             @Override
             public void confirm(CorrelationData correlationData, boolean ack, String cause) {
@@ -67,6 +69,8 @@ public class SendMQTest {
                 }
             }
         });
+
+        //2.设置Return机制
         //注意：低版本使用setReturnCallback（）方法；在高版本中该方法被弃用，使用setReturnsCallback()方法
         rabbitTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
             @Override
@@ -76,6 +80,8 @@ public class SendMQTest {
             }
         });
         //注意 ：只用SpringBoot项目投递消息时，不需要在设置mandatory参数为true
+
+        //3.开启消息持久化
         //发送消息 设置消息持久化 message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
         rabbitTemplate.convertAndSend("", "confirmss", "SpringBoot Confirms Message!", new MessagePostProcessor() {
             @Override
