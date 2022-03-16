@@ -1,5 +1,6 @@
 package com.lsh.springboot;
 
+import com.lsh.springboot.config.DeadLetterConfig;
 import com.lsh.springboot.config.RabbitMQConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,4 +94,31 @@ public class SendMQTest {
             }
         });
     }
+
+    /**
+     * 通过消费者拒绝消费或者Nack使消息进入死信队列
+     * 或者普通队列设置了ttl
+     */
+    @Test
+    public void sendNormalQueue(){
+        rabbitTemplate.convertAndSend(DeadLetterConfig.NORMAL_EXCHANGE,"normal.nack.reject","normal——message");
+        System.out.println("消息已发送");
+    }
+
+    /**
+     * 通过设置TTL消息存活时间，使消息进入死信队列
+     */
+    @Test
+    public void sendDeadLetterQueueAndSetTTL(){
+        rabbitTemplate.convertAndSend(DeadLetterConfig.NORMAL_EXCHANGE, "normal.ttl", "通过设置TTL消息存活时间，使消息进入死信队列", new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                //设置消息存活时间
+                message.getMessageProperties().setExpiration("5000");
+                return message;
+            }
+        });
+        System.out.println("消息已发送");
+    }
+
 }
