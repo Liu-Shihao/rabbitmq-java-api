@@ -1,4 +1,4 @@
-package com.lsh.config;
+package com.lsh.springboot.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ：LiuShihao
  * @date ：Created in 2022/3/15 11:36 下午
  * @desc ：配置类声明交换机、队列和绑定
+ * 项目启动后，交换机和队列是还未创建的，只有使用的时候才会创建出来
  */
 @Configuration
 public class RabbitMQConfig {
@@ -38,6 +39,7 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue queue(){
+        //nonDurable表示不持久化  ；durable表示持久化
         Queue queue = QueueBuilder.durable(QUEUE_NAME).build();
         return queue;
     }
