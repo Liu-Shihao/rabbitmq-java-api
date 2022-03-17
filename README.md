@@ -1,6 +1,8 @@
 # 一、安装部署
+
 国内 Docker 镜像网站： https://hub.daocloud.io/
-Docker环境
+
+（需要部署Docker环境）
 ```yaml
 version: "3.1"
 services:
@@ -130,12 +132,6 @@ spring:
 ```
 ## 3.3 配置类声明交换机、队列和绑定
 ```Java
-package com.lsh.springboot.config;
-
-import org.springframework.amqp.core.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/15 11:36 下午
@@ -192,20 +188,6 @@ public class RabbitMQConfig {
 ## 3.4 生产消息
 在SpringBoot项目直接通过RabbitTemplate对象进行操作
 ```java
-package com.lsh.springboot;
-
-import com.lsh.springboot.config.RabbitMQConfig;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/15 11:58 下午
@@ -249,16 +231,6 @@ public class SendMQTest {
 
 ## 3.5 监听消息
 ```java
-package com.lsh.springboot.listener;
-
-import com.lsh.springboot.config.RabbitMQConfig;
-import com.rabbitmq.client.Channel;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/16 2:21 下午
@@ -293,14 +265,6 @@ public class ConsumeListener {
 ## 4.2 确保消息从交换机路由到达队列(return机制)
 ## 4.3 确保消息持久化（消息持久化）
 ```java
-package com.lsh.g_confirms;
-
-import com.lsh.RabbitMQConnectionUtil;
-import com.rabbitmq.client.*;
-import org.junit.Test;
-
-import java.io.IOException;
-
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/16 2:49 下午
@@ -370,14 +334,6 @@ public class ConfirmsPublisher {
 ```
 ## 4.4 确保消息正常被消费（手动ack）
 ```java
-package com.lsh.g_confirms;
-
-import com.lsh.RabbitMQConnectionUtil;
-import com.rabbitmq.client.*;
-import org.junit.Test;
-
-import java.io.IOException;
-
 /**
  * @author ：LiuShihao
  * @date ：Created in 2022/3/16 3:41 下午
@@ -538,13 +494,6 @@ public Queue normalQueue(){
 ### 5.2.2
 声明延时交换机
 ```java
-package com.lsh.springboot.config;
-
-import org.springframework.amqp.core.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.HashMap;
 
 /**
  * @author ：LiuShihao
