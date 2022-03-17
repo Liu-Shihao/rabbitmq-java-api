@@ -1,6 +1,7 @@
 package com.lsh.springboot;
 
 import com.lsh.springboot.config.DeadLetterConfig;
+import com.lsh.springboot.config.DelayedExchangeConfig;
 import com.lsh.springboot.config.RabbitMQConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -115,6 +116,25 @@ public class SendMQTest {
             public Message postProcessMessage(Message message) throws AmqpException {
                 //设置消息存活时间
                 message.getMessageProperties().setExpiration("5000");
+                return message;
+            }
+        });
+        System.out.println("消息已发送");
+    }
+
+
+    //向延时交换机投递延时消息，如果如果消息设置了Return机制，则由于消息被延时投递，还未到达队列此时会触发Return回调函数
+    @Test
+    public void sendDelayedExchange(){
+
+        rabbitTemplate.setReturnCallback((Message message, int replyCode, String replyText, String exchange, String routingKe)->{
+            System.out.println("消息未投递到队列");
+        });
+        rabbitTemplate.convertAndSend(DelayedExchangeConfig.DELAYED_EXCHANGE_NAME, "little.delayed.rabbit", "小延时兔子", new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                //设置延时时间 单位为毫秒
+                message.getMessageProperties().setDelay(30000);
                 return message;
             }
         });

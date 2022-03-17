@@ -462,7 +462,7 @@ public void consumer1(String msg, Channel channel, Message message) throws IOExc
 1. 直接设置消息的过期时间
 2. 通过设置队列的过期时间
 注意：通过消息过期的方式使消息进入死信队列，消费者不能监听普通队列，需要监听死信队列。
-```java
+```
 //1.设置消息的TTL
 @Test
 public void sendDeadLetterQueueAndSetTTL(){
@@ -478,31 +478,107 @@ public void sendDeadLetterQueueAndSetTTL(){
 }
 
 //2.设置队列的TTL
-    @Bean
-    public Queue normalQueue(){
-        return QueueBuilder.durable(NORMAL_QUEUE)
-                .deadLetterExchange(DEAD_EXCHANGE)
-                .deadLetterRoutingKey("dead.abd")
-                .ttl(5000)//设置队列的TTL 单位为毫秒
-                .maxLength(1)
-                .build();
-    }
+@Bean
+public Queue normalQueue(){
+    return QueueBuilder.durable(NORMAL_QUEUE)
+            .deadLetterExchange(DEAD_EXCHANGE)
+            .deadLetterRoutingKey("dead.abd")
+            .ttl(5000)//设置队列的TTL 单位为毫秒
+            .maxLength(1)
+            .build();
+}
 ```
 ### 5.1.3 队列最大长度
 在声明队列的时候设置队列的最大长度，则超过这个最大长度后的消息都会被进入死信队列或者被丢弃
-```java
-    @Bean
-    public Queue normalQueue(){
-        return QueueBuilder.durable(NORMAL_QUEUE)
-                .deadLetterExchange(DEAD_EXCHANGE)
-                .deadLetterRoutingKey("dead.abd")
-                .ttl(5000)
-                .maxLength(1) //设置队列最大长度
-                .build();
-    }
+```
+@Bean
+public Queue normalQueue(){
+    return QueueBuilder.durable(NORMAL_QUEUE)
+            .deadLetterExchange(DEAD_EXCHANGE)
+            .deadLetterRoutingKey("dead.abd")
+            .ttl(5000)
+            .maxLength(1) //设置队列最大长度
+            .build();
+}
 ```
 
 ## 5.2 延时交换机（RabbitMQ Plugins）
+### 5.2.1 下载延时交换机插件
+延迟交换机属于RabbitMQ的插件了，需要下载插件，开启配置才能实现消息延时
+官网插件地址：https://www.rabbitmq.com/community-plugins.html
+延时交换机下载地址：https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/
+插件下载后，将插件复制到RabbitMQ的`plugins`目录下,然后进入sbin目录，执行命令：`rabbitmq-plugins enable rabbitmq_delayed_message_exchange`
+### 5.2.2
+声明延时交换机
+```java
+package com.lsh.springboot.config;
+
+import org.springframework.amqp.core.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+
+/**
+ * @author ：LiuShihao
+ * @date ：Created in 2022/3/17 10:05 上午
+ * @desc ：构造延时交换机
+ */
+@Configuration
+public class DelayedExchangeConfig {
+
+    public static final String DELAYED_EXCHANGE_NAME = "boot-delayed-exchange";
+
+    public static final String DELAYED_QUEUE_NAME = "boot-delayed-queue";
+
+    public static final String DELAYED_ROUTING_KEY = "*.delayed.*";
+
+    //普通队列
+    @Bean
+    public Queue delayedQueue(){
+        return QueueBuilder.durable(DELAYED_QUEUE_NAME).build();
+    }
+
+    /**
+     * 构造延时交换机
+     * 1、构造arguments参数 指定交换机类型x-delayed-type为topic
+     * 2、指定type为x-delayed-message类型
+     */
+    @Bean
+    public Exchange delayedExchange(){
+        HashMap<String, Object> arguments = new HashMap<>();
+        arguments.put("x-delayed-type","topic");
+        CustomExchange customExchange = new CustomExchange(DELAYED_EXCHANGE_NAME, "x-delayed-message", true, false, arguments);
+        return customExchange;
+    }
+
+    @Bean
+    public Binding delayedBinding(Queue delayedQueue,Exchange delayedExchange){
+        return BindingBuilder.bind(delayedQueue).to(delayedExchange).with(DELAYED_ROUTING_KEY).noargs();
+    }
+}
+
+```
+发送延时消息
+```java
+//向延时交换机投递延时消息，如果如果消息设置了Return机制，则由于消息被延时投递，还未到达队列此时会触发Return回调函数
+@Test
+public void sendDelayedExchange(){
+
+    rabbitTemplate.setReturnCallback((Message message, int replyCode, String replyText, String exchange, String routingKe)->{
+        System.out.println("消息未投递到队列");
+    });
+    rabbitTemplate.convertAndSend(DelayedExchangeConfig.DELAYED_EXCHANGE_NAME, "little.delayed.rabbit", "小延时兔子", new MessagePostProcessor() {
+        @Override
+        public Message postProcessMessage(Message message) throws AmqpException {
+            //设置延时时间 单位为毫秒
+            message.getMessageProperties().setDelay(30000);
+            return message;
+        }
+    });
+    System.out.println("消息已发送");
+}
+```
 
 
 # 、集群高可用
