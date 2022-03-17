@@ -1,5 +1,32 @@
 # 一、安装部署
+国内 Docker 镜像网站： https://hub.daocloud.io/
+Docker环境
+```yaml
+version: "3.1"
+services:
+  rabbitmq:
+    image: daocloud.io/library/rabbitmq:3.8.5
+    container_name: rabbitmq
+    restart: always
+    volumes:
+      - ./data/:/var/lib/rabbitmq/
+    ports:
+      - 5672:5672
+      - 15672:15672
+```
+```shell
+# 在Linux内部执行: curl localhost:5672  出现AMQP 安装成功
 
+# 开启可视化界面
+# 进入容器内部
+docker exec -it rabbitmq bash
+# 进入 /opt/rabbitmq ,找到 sbin 和 plugins 文件夹
+# 在plugins 目录下会有rabbitmq_managemengt插件，然后在哎sbin目录下执行
+./rabbitmq-plugins enable rabbitmq_managemeng
+
+
+# 访问可视化管理界面 浏览器输入: 你的服务器IP:15672 用户名和密码 都是guest
+```
 # 二、通讯方式(操作RabbitMQ API)
 结构Maven项目，导入Pom依赖：
 ```xml
@@ -581,4 +608,5 @@ public void sendDelayedExchange(){
 ```
 
 
-# 、集群高可用
+# 六、集群高可用
+略
