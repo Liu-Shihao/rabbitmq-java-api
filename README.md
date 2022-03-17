@@ -1,3 +1,18 @@
+# 前言
+
+此项目为学习RabbitMQ中间件，内容包括：
+- RabbitMQ的API用法
+- 通讯方式
+- 整体架构
+- 与SpringBoot项目整合
+- 保证消息可靠性
+- 集群可靠性
+
+如果对你有帮助，就支持一下吧^_^
+
+Author：LiuShihao
+
+Last Update Time：2022-03-17 14:35:19
 # 一、安装部署
 
 国内 Docker 镜像网站： https://hub.daocloud.io/
@@ -16,6 +31,9 @@ services:
       - 5672:5672
       - 15672:15672
 ```
+
+运行`docker-compose up -d` 执行yml文件
+
 ```shell
 # 在Linux内部执行: curl localhost:5672  出现AMQP 安装成功
 
@@ -101,6 +119,55 @@ Server 监听请求消息队列，并且回复响应信息 到响应消息队列
 整个流程需要携带两个参数：
 1. replyTo： 告知Server将相应信息放到哪个队列 （指定响应队列）
 2. correlationId：告知Server发送相应消息时，需要携带位置标示来告知Client响应的信息（响应消息对应请求消息）
+
+## 2.7 Headers
+```java
+/**
+ * @author ：LiuShihao
+ * @date ：Created in 2022/3/17 4:14 下午
+ * @desc ：Headers类型交换机
+ */
+public class HeadersPublisher {
+
+    public static final String EXCHANGE_NAME = "headers-exchange";
+    public static final String QUEUE_NAME = "headers-queue";
+
+
+    @Test
+    public void publisher() throws Exception {
+        // 1.获取连接对象
+        Connection connection = RabbitMQConnectionUtil.getConnection();
+
+        //2.构建Channel
+        Channel channel = connection.createChannel();
+
+        //3.构建Headers类型交换机，创建队列并绑定
+        channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.HEADERS);
+         Map<String, Object> arguments = new HashMap<>();
+         //x-match 设置为all：表示所有条件都满足才能路由，any：表示有一个条件满足就可以路由
+        arguments.put("x-match","all");
+//        arguments.put("x-match","any");
+        arguments.put("name","jack");
+        arguments.put("age","23");
+        channel.queueDeclare(QUEUE_NAME,true,false,false,null);
+
+        channel.queueBind(QUEUE_NAME,EXCHANGE_NAME,"",arguments);
+
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put("name","jack");
+        headers.put("age","23");
+        //4.发送消息
+        String msg = "这是Headers类型消息";
+        AMQP.BasicProperties properties = new AMQP.BasicProperties()
+                .builder()
+                .headers(headers)
+                .build();
+        channel.basicPublish(EXCHANGE_NAME,"",properties,msg.getBytes());
+        System.out.println("消息已发送");
+        System.in.read();
+    }
+}
+```
 
 # 三、RabbitMQ整合Spring
 ## 3.1 导入依赖
@@ -442,7 +509,7 @@ public void consumer1(String msg, Channel channel, Message message) throws IOExc
 ```
 ### 5.1.2 消息过期
 设置TTL（TimeToLive）有两种方式：
-1. 直接设置消息的过期时间
+1. 直接设置消息的过期时间（存在问题，如果第一个消息TTL为30秒，第二个消息TTL为3秒，此时第二个消息必须等待第一个消息过期之后才能过期）
 2. 通过设置队列的过期时间
 注意：通过消息过期的方式使消息进入死信队列，消费者不能监听普通队列，需要监听死信队列。
 ```
@@ -486,6 +553,15 @@ public Queue normalQueue(){
 ```
 
 ## 5.2 延时交换机（RabbitMQ Plugins）
+使用延时交换机的方式对消息延时是最合适的，因为以上的方式都存在问题：
+1. 如果给消息设置过期时间，队列消息是按顺序消费的，后面的消息只能等前面那消息处理后才能被处理，如果后面的消息已经过期了但是前面的消息还没有被处理，则后面的消息无法被过期
+2. 如果给队列设置过期时间，则更不方便，如果消息需要分别延时不同的时间的话，那就只能分别创建多个不同的队列
+这种方式是将消息直接存放在队列中等待过期的，时间不准确，并且有弊端。
+
+而直接使用延时交换机来进行延时处理的话，消息是被存放在延时交换机中的，等待到达延时时间后，才会被投递到队列中，从而直接消费。
+
+注意：由于消息延时在交换机中，未到达队列中，所以如果如果消息设置了Return机制，则由于消息被延时投递，还未到达队列此时会触发Return回调函数，
+并且如果此时RabbitMQ服务重启了，存在延时交换机中的消息会被丢失。
 ### 5.2.1 下载延时交换机插件
 延迟交换机属于RabbitMQ的插件了，需要下载插件，开启配置才能实现消息延时
 官网插件地址：https://www.rabbitmq.com/community-plugins.html
