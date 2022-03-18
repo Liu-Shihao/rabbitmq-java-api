@@ -8,7 +8,7 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual  # 设置手动ack确认
-        prefetch: 10  # 设置消息流控
+        prefetch: 1  # 设置消息流控为1 才能实现非均衡/能者多劳的消费方式
         max-concurrency:
     #    publisher-confirms: true  # SpringBoot 2.1版本以下 使用 已弃用
     publisher-confirm-type: correlated # 开启confirms确认，确保消息到达交换机（2.1版本后）
